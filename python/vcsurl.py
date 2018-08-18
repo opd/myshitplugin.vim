@@ -57,12 +57,13 @@ def get_url_mercurial(file_path, line):
 
 
 def get_url_git(file_path, line):
+    # git config --get remote.origin.url
     default_path = run_shell_command(['git', 'config', '--get',
                                       'remote.origin.url'])
     default_path = default_path.decode()
     default_path = default_path.replace('\n', '')
 
-    domain = r'(?P<domain>bitbucket\.org)'
+    domain = r'(?P<domain>bitbucket\.org|github\.com)'
     team = r'(?P<team>[^/]+)'
     project = r'(?P<project>[^/]+)'
     username = r'(?P<username>[^@]+)'
@@ -72,8 +73,10 @@ def get_url_git(file_path, line):
     # not tested
     # https://username@bitbucket.org/team/project.git
     bb_https_pattern = r'^https://{username}@{domain}/{team}/{project}[.]git$'
+    # https://github.com/opd/vcsurl.vim.git
+    gh_https_pattern = r'^https://{domain}/{team}/{project}[.]git$'
 
-    patterns = [bb_ssh_pattern, bb_https_pattern]
+    patterns = [bb_ssh_pattern, bb_https_pattern, gh_https_pattern]
     result = None
     for pattern in patterns:
         pattern = pattern.format(domain=domain, team=team,
@@ -86,12 +89,19 @@ def get_url_git(file_path, line):
         domain = result['domain']
         team = result['team']
         project = result['project']
+        # https://bitbucket.org/team/project/src/master/path_to_file#lines-12
         if domain == 'bitbucket.org':
-            # https://bitbucket.org/team/project/src/master/path_to_file#lines-12
             url = 'https://{domain}/{team}/{project}/src/master'
             url = url.format(domain=domain, team=team, project=project)
             url += file_path
             url += '#lines-{line}'.format(line=line)
+            return url
+        # https://github.com/opd/vcsurl.vim/blob/master/python/vcsurl.py#L8
+        elif domain == 'github.com':
+            url = 'https://{domain}/{team}/{project}/blob/master'
+            url = url.format(domain=domain, team=team, project=project)
+            url += file_path
+            url += '#L{line}'.format(line=line)
             return url
 
 
