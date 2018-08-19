@@ -16,6 +16,9 @@ Plug 'opd/vcsurl.vim'
 
 ```vim
 nmap <leader>bb :GetVCSLineUrl<CR>
+
+" Move url to 'c' register. By default '+'
+let g:vcsurl_register = 'c'
 ```
 
 ### TODO
