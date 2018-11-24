@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+import hashlib
+import os
+import os.path
+from pathlib import Path
 import vim
 
 from lib.utils import (get_project_dir_and_vcs, get_file_path,
@@ -31,3 +35,30 @@ def get_vcs_line_url():
         print('Success')
     else:
         print('Fail')
+
+
+def get_string_hash(s):
+    return hashlib.md5(s.encode('utf-8')).hexdigest()
+
+
+def per_project_viminfo():
+    # TODO disable function by default
+    # TODO custom viminfo directory
+    fname = vim.eval("getcwd()")
+    project_dir, vcs_name = get_project_dir_and_vcs(fname)
+    file_name = 'root'
+    if vcs_name:
+        file_name = get_string_hash(project_dir)
+    viminfo_dir = '.viminfos'
+    viminfo_dir = os.path.join(Path.home(), viminfo_dir)
+    path = viminfo_dir + file_name
+    new_viminfo = False
+    if not os.path.isfile(path):
+        new_viminfo = True
+        if not os.path.isdir(viminfo_dir):
+            os.mkdir(viminfo_dir)
+    cmd = "set viminfo='10,\\\"100,:20,%%,n%s" % path
+    vim.command(cmd)
+    if new_viminfo:
+        vim.command("wv")
+    vim.command("rv")

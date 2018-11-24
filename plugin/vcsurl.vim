@@ -14,3 +14,13 @@ function! GetVCSLineUrl()
   python3 vcsurl.get_vcs_line_url()
 endfunction
 command -nargs=0 GetVCSLineUrl call GetVCSLineUrl()
+
+
+function! PerProjectViminfo()
+  python3 vcsurl.per_project_viminfo()
+endfunction
+
+command -nargs=0 PerProjectViminfo call PerProjectViminfo()
+
+autocmd BufReadPre,FileReadPre * :PerProjectViminfo
+autocmd BufWritePost * :wv
