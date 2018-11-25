@@ -19,8 +19,18 @@ command -nargs=0 GetVCSLineUrl call GetVCSLineUrl()
 function! PerProjectViminfo()
   python3 vcsurl.per_project_viminfo()
 endfunction
-
 command -nargs=0 PerProjectViminfo call PerProjectViminfo()
+
+function! MoveWordLeft()
+  python3 vcsurl.move_text(left_to_right_direction=True)
+endfunction
+
+function! MoveWordRight()
+  python3 vcsurl.move_text(left_to_right_direction=False)
+endfunction
+
+nnoremap gl :call MoveWordLeft()<Return>
+nnoremap gh :call MoveWordRight()<Return>
 
 autocmd BufReadPre,FileReadPre * :PerProjectViminfo
 autocmd BufWritePost * :wv
