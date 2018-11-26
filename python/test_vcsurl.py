@@ -52,6 +52,9 @@ def test_get_word_begin():
     assert utils.get_word_begin(s, 3) == 0
     assert utils.get_word_begin(s, 8) == 6
     assert utils.get_word_begin(s, 15) == 12
+    #    0123456789012345
+    s = "func(aaa, bbb)"
+    assert utils.get_word_begin(s, 6) == 5
 
 
 def test_get_word_bound():
@@ -86,3 +89,17 @@ def test_move_word():
     assert result['current_line'] == \
         "   first(1, 2, 3), s(c, o=1) = first, second"
     assert result['col'] == 19
+    #              1111111111222222222233333333334444444444555555555666
+    #    01234567890123456789012345678901234567890123456789012345789012
+    s = "from lib.utils import (get_project_dir_and_vcs, get_file_path,"
+    result = move_word('', s, '', 24, True)
+    assert result['current_line'] == \
+        "from lib.utils import (get_file_path, get_project_dir_and_vcs,"
+
+    #              1111111111222222222233333333334444444444555555555666
+    #    01234567890123456789012345678901234567890123456789012345789012
+    s = "  get_url_git(file_path, line) == url"
+    result = move_word('', s, '', 15, True)
+    assert result['current_line'] == \
+        "  get_url_git(line, file_path) == url"
+    assert result['col'] == 21

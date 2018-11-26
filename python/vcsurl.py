@@ -50,7 +50,7 @@ def per_project_viminfo():
     if vcs_name:
         file_name = get_string_hash(project_dir)
     viminfo_dir = '.viminfos'
-    viminfo_dir = os.path.join(Path.home(), viminfo_dir)
+    viminfo_dir = os.path.join(str(Path.home()), viminfo_dir)
     path = viminfo_dir + file_name
     new_viminfo = False
     if not os.path.isfile(path):

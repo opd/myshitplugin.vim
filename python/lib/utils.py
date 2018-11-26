@@ -111,7 +111,7 @@ def get_file_path(full_path, project_dir):
 
 
 def get_word_begin(line, index):
-    space_characters = (' ',)
+    space_characters = ' ('
     result = -1
     for index in range(index, -1, -1):
         if line[index] in space_characters:
@@ -128,7 +128,7 @@ def get_word_bounds(line, index):
         '"': '"',
         '\'': '\'',
     }
-    after_word_char = ", "
+    after_word_char = ", )"
     for i in range(index, len(line)):
         char = line[i]
         if stack and char == stack[-1]:
