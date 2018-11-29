@@ -1,7 +1,11 @@
 VERY BETA
 ---------
 
-Copy bitbucket.org or github.com current line url to clipboard.
+My vim experiments
+
+* Copy bitbucket.org or github.com current line url to clipboard.
+* Per project viminfo settings. (.hg, .git)
+* Visual selection screenshot (not implemented)
 
 Installation
 ------------

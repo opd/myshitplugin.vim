@@ -29,8 +29,15 @@ function! MoveWordRight()
   python3 vcsurl.move_text(left_to_right_direction=False)
 endfunction
 
+function! Capture()
+  python3 vcsurl.capture()
+endfunction
+
 nnoremap gl :call MoveWordLeft()<Return>
 nnoremap gh :call MoveWordRight()<Return>
 
 autocmd BufReadPre,FileReadPre * :PerProjectViminfo
 autocmd BufWritePost * :wv
+
+command! -nargs=0 Capture call Capture()
+vnoremap q :<C-u>Capture<Return>

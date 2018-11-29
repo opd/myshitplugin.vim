@@ -81,3 +81,20 @@ def move_text(left_to_right_direction=False):
         pos = (line_number, new_col)
         w.cursor = pos
         b[line_number - 1] = new_line
+
+
+def capture():
+    begin = vim.eval('getpos("\'<")')
+    end = vim.eval('getpos("\'>")')
+    directory = os.path.dirname(os.path.abspath(__file__))
+    script = os.path.join(directory, 'capture.py')
+    fname = vim.eval("expand('%:p')")
+    params = {
+        "script": script,
+        "filename": fname,
+        "from": begin[1],
+        "to": end[1],
+    }
+    cmd = "call system('%(script)s %(filename)s %(from)s %(to)s> " % params
+    cmd += "/dev/null 2>&1 &')"
+    vim.command(cmd)
