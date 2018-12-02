@@ -1,20 +1,27 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import functools
 import os
 import re
 import subprocess
 import sys
 import tempfile
-from PyQt5.QtWidgets import (QApplication, QLabel, QMainWindow, QVBoxLayout,
-                             QWidget)
+from PyQt5.QtWidgets import (QApplication, QComboBox, QFileDialog, QLabel,
+                             QMainWindow, QPushButton, QVBoxLayout, QWidget)
 from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
+from PyQt5.QtCore import QRect
 
 # TODO change font size
 # TODO capture widget to image
 # TODO use shlex
 # Check files with ()'""'[] etc.
 # TODO log sys.argvs call params and time
+
+
+def before_settrace():
+    import PyQt5
+    PyQt5.QtCore.pyqtRemoveInputHook()
 
 
 def command_results(cmd):
@@ -121,6 +128,8 @@ class MainWindow(QMainWindow):
     def __init__(self, argv):
         super().__init__()
         self._argv = argv
+        self._current_style = 'monokai'
+        self._line_count = 0
         self.init_ui()
 
     @property
@@ -135,57 +144,92 @@ class MainWindow(QMainWindow):
     def to_line(self):
         return int(self._argv[3])
 
+    @functools.lru_cache(maxsize=128)
+    def get_style_css(self, style_name):
+        lines = command_results("pygmentize -S %s -f html" % style_name)
+        return "\n".join(lines)
+
     def get_styles(self):
         pattern = re.compile(r"^[*] ([a-z]+):$")
         lines = command_results("pygmentize -L -- styles")
         lines = (pattern.match(line) for line in lines)
         lines = (line.group(1) for line in lines if line)
         lines = list(lines)
-        print(lines)
+        return lines
+
+    def style_changed(self, style):
+        self._current_style = style
+        self.update_html()
 
     def update_html(self):
         lines = get_file_markup(self.file_name,
                                 self.from_line,
                                 self.to_line)
+        self._line_count = len(lines)
         html = "".join(lines)
+        css = self.get_style_css(self._current_style)
         beforeCode = """
         <html>
             <head>
                 <style>%s
                 body {
                   margin: 0;
+                  font-size: 16px;
                 }
                 .hll {
-                    padding: 5px;
+                    // padding: 5px;
                 }
                 </style>
             </head>
         <body>
             <div class="hll"><pre>"""
-        beforeCode = beforeCode % DEFAULT_CSS
+        beforeCode = beforeCode % css
         afterCode = """</pre>
                 </div>
             </body>
         </html>"""
         html = beforeCode + html + afterCode
         self.web_view.setHtml(html)
+        self.web_view.setZoomFactor(1.0)
+
+    def on_capture_clicked(self):
+        print("HOP")
+        img = self.web_view.grab()
+        before_settrace()
+        rect = QRect(0, 0, img.width(), self._line_count * 16);
+        img = img.copy(rect);
+        fileName = QFileDialog.getSaveFileName(
+            self, "Caption", "/tmp/", "Image Files (*.png, *.jpg *.bmp)")
+        img.save(fileName)
 
     def init_ui(self):
         self.statusBar().showMessage('Ready')
-        self.setGeometry(640, 480, 250, 150)
+        self.setGeometry(640, 480, 640, 480)
         self.setWindowTitle('Statusbar')
         widget = QWidget()
         main_layout = QVBoxLayout()
         widget.setLayout(main_layout)
         self.setCentralWidget(widget)
 
-        label = QLabel(str(self._argv))
+        label_str = str(self._argv)
+        label_str = "Label"
+        label = QLabel(label_str)
         main_layout.addWidget(label)
+
         self.web_view = QWebView()
         self.update_html()
-        styles = self.get_styles()
-        print(styles)
         main_layout.addWidget(self.web_view)
+
+        styles = self.get_styles()
+        self.color_cbox = QComboBox()
+        for style in styles:
+            self.color_cbox.addItem(style)
+        main_layout.addWidget(self.color_cbox)
+        self.color_cbox.currentTextChanged.connect(self.style_changed)
+
+        self.capture_btn = QPushButton("Take Screenshot")
+        self.capture_btn.clicked.connect(self.on_capture_clicked)
+        main_layout.addWidget(self.capture_btn)
 
         self.setLayout(main_layout)
         self.show()
