@@ -51,7 +51,7 @@ def per_project_viminfo():
         file_name = get_string_hash(project_dir)
     viminfo_dir = '.viminfos'
     viminfo_dir = os.path.join(str(Path.home()), viminfo_dir)
-    path = viminfo_dir + file_name
+    path = os.path.join(viminfo_dir, file_name)
     new_viminfo = False
     if not os.path.isfile(path):
         new_viminfo = True
