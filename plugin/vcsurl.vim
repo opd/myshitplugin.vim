@@ -16,28 +16,21 @@ endfunction
 command -nargs=0 GetVCSLineUrl call GetVCSLineUrl()
 
 
+" Per project info
 function! PerProjectViminfo()
   python3 vcsurl.per_project_viminfo()
 endfunction
 command -nargs=0 PerProjectViminfo call PerProjectViminfo()
 
-function! MoveWordLeft()
-  python3 vcsurl.move_text(left_to_right_direction=True)
-endfunction
+autocmd BufReadPre,FileReadPre,BufNew * :PerProjectViminfo
+autocmd BufWritePost * :wv
 
-function! MoveWordRight()
-  python3 vcsurl.move_text(left_to_right_direction=False)
-endfunction
 
+" Capture
 function! Capture()
   python3 vcsurl.capture()
 endfunction
 
-nnoremap gl :call MoveWordLeft()<Return>
-nnoremap gh :call MoveWordRight()<Return>
-
-autocmd BufReadPre,FileReadPre * :PerProjectViminfo
-autocmd BufWritePost * :wv
-
 command! -nargs=0 Capture call Capture()
+
 vnoremap q :<C-u>Capture<Return>

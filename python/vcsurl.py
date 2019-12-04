@@ -6,7 +6,7 @@ from pathlib import Path
 import vim
 
 from lib.utils import (get_project_dir_and_vcs, get_file_path,
-                       get_url_mercurial, get_url_git, move_word)
+                       get_url_mercurial, get_url_git)
 
 
 def get_global_var(var_name, default=''):
@@ -62,25 +62,6 @@ def per_project_viminfo():
     if new_viminfo:
         vim.command("wv")
     vim.command("rv")
-
-
-def move_text(left_to_right_direction=False):
-    b = vim.current.buffer
-    vim.command("echom 'move_text'")
-    w = vim.current.window
-    b = vim.current.buffer
-    pos = w.cursor
-    line_number, col = pos
-    # prev_line = b[line_number - 1]
-    line = b[line_number - 1]
-    # next_line = b[line_number + 1]
-    res = move_word('', line, '', col, left_to_right_direction)
-    if res:
-        new_line = res['current_line']
-        new_col = res['col']
-        pos = (line_number, new_col)
-        w.cursor = pos
-        b[line_number - 1] = new_line
 
 
 def capture():
