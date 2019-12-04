@@ -7,16 +7,20 @@ import re
 import subprocess
 import sys
 import tempfile
+from PyQt5.Qt import QStandardPaths, QSizePolicy
+from PyQt5.QtGui import QGuiApplication, QClipboard
 from PyQt5.QtWidgets import (QApplication, QComboBox, QFileDialog, QLabel,
-                             QMainWindow, QPushButton, QVBoxLayout, QWidget)
+                             QMainWindow, QPushButton, QSpacerItem,
+                             QVBoxLayout, QWidget)
 from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, QMimeData
 
 # TODO change font size
 # TODO capture widget to image
 # TODO use shlex
 # Check files with ()'""'[] etc.
 # TODO log sys.argvs call params and time
+# TODO fix image layout. Add padding. Crop of fix
 
 
 def before_settrace():
@@ -37,7 +41,6 @@ def get_file_markup(fname, from_line, to_line):
     to_line = int(to_line)
     tmp_file = tempfile.NamedTemporaryFile(suffix=".html")
     output_file = tmp_file.name
-    # output_file = '/tmp/file.html'
     cmd = "pygmentize -f html -O style=colorful -l python -o %s %s" % (
         output_file,
         fname,
@@ -175,6 +178,7 @@ class MainWindow(QMainWindow):
                 body {
                   margin: 0;
                   font-size: 16px;
+                  border: 1px solid red;
                 }
                 .hll {
                     // padding: 5px;
@@ -192,20 +196,36 @@ class MainWindow(QMainWindow):
         self.web_view.setHtml(html)
         self.web_view.setZoomFactor(1.0)
 
+    def on_copy_to_clipboard(self):
+        pixmap = self.web_view.grab()
+        clipboard = QGuiApplication.clipboard()
+
+        data = QMimeData()
+        data.setImageData(pixmap)
+        clipboard.setMimeData(data, QClipboard.Clipboard)
+
     def on_capture_clicked(self):
-        print("HOP")
         img = self.web_view.grab()
-        before_settrace()
-        rect = QRect(0, 0, img.width(), self._line_count * 16);
-        img = img.copy(rect);
-        fileName = QFileDialog.getSaveFileName(
-            self, "Caption", "/tmp/", "Image Files (*.png, *.jpg *.bmp)")
-        img.save(fileName)
+        print(img)
+        rect = QRect(0, 0, img.width(), self._line_count * 16)
+        img = img.copy(rect)
+
+        path = QStandardPaths.writableLocation(QStandardPaths.PicturesLocation)
+
+        file_name, _ = QFileDialog.getSaveFileName(
+            self, "Caption", path, "Image Files (*.png, *.jpg *.bmp)")
+        if not file_name:
+            return
+        file_name, file_extension = os.path.splitext(file_name)
+        if not file_extension:
+            file_name += '.png'
+
+        img.save(file_name)
 
     def init_ui(self):
         self.statusBar().showMessage('Ready')
         self.setGeometry(640, 480, 640, 480)
-        self.setWindowTitle('Statusbar')
+        self.setWindowTitle('Vim screenshot')
         widget = QWidget()
         main_layout = QVBoxLayout()
         widget.setLayout(main_layout)
@@ -220,6 +240,9 @@ class MainWindow(QMainWindow):
         self.update_html()
         main_layout.addWidget(self.web_view)
 
+        spacer = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        main_layout.addItem(spacer)
+
         styles = self.get_styles()
         self.color_cbox = QComboBox()
         for style in styles:
@@ -230,6 +253,10 @@ class MainWindow(QMainWindow):
         self.capture_btn = QPushButton("Take Screenshot")
         self.capture_btn.clicked.connect(self.on_capture_clicked)
         main_layout.addWidget(self.capture_btn)
+
+        self.copy_cc_btn = QPushButton("Copy to clipboard")
+        self.copy_cc_btn.clicked.connect(self.on_copy_to_clipboard)
+        main_layout.addWidget(self.copy_cc_btn)
 
         self.setLayout(main_layout)
         self.show()
