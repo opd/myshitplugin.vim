@@ -34,3 +34,16 @@ endfunction
 command! -nargs=0 Capture call Capture()
 
 vnoremap q :<C-u>Capture<Return>
+
+" ControlP
+fu! vcsurl#match(items, str, limit, mmode, ispath, crfile, regex)
+  python3 vcsurl.custom_match()
+  return ret_val
+endf
+
+fu! vcsurl#match2()
+  python3 vcsurl.custom_match()
+  return ret_val
+endf
+
+let g:ctrlp_match_func = {'match' : 'vcsurl#match'}
