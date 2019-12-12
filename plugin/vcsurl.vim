@@ -47,3 +47,13 @@ fu! vcsurl#match2()
 endf
 
 let g:ctrlp_match_func = {'match' : 'vcsurl#match'}
+
+" fu! vcsurl#onearg(data)
+"   python3 vcsurl.one_arg()
+" endf
+" 
+" 
+" let g:ctrlp_status_func = { 'arg_type' : 'dict', 'enter' : 'vcsurl#onearg'}
+"
+" :let m = matchadd("CtrlPMatch", "pro\\zsd\\zeuct", 1, 3001)
+" :call matchdelete(3001)
