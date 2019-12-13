@@ -3,3 +3,9 @@ python/.direnv/
 python/lib/.pytest_cache/
 python/.pytest_cache/
 python/lib/
+
+**/*.c
+**/*.so
+python/env/
+python/private_data.py
+python/build/

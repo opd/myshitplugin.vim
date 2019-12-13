@@ -2,6 +2,9 @@
 import re
 import itertools as it
 
+import cmatch
+
+
 def create_pattern(pattern, all_occurences=False):
     # TODO filter letters
     pattern = list(pattern)
@@ -50,9 +53,12 @@ def find_occurences(line, initial_pattern):
     return result
 
 
-def distance_rate(occurence):
-    # data = list(i for i, x in enumerate(occurence) if x)
-    data = occurence
+def distance_rate(occurence, indexes=False):
+    if indexes:
+        data = list(i for i, x in enumerate(occurence) if x)
+    else:
+        data = occurence
+
     data = (b - a for a, b in zip(data, data[1:]))
     data = (1 / x for x in data)
     return sum(data)
@@ -66,14 +72,22 @@ def get_weight(line, pattern):
     occurences = find_occurences(line, pattern)
     return max([_get_weight(line, occurence) for occurence in occurences])
 
+def get_weight_2(line, pattern):
+    occurences = _find_occurences(line, pattern)
+    return max([distance_rate(occurence, indexes=True) for occurence in occurences])
 
-def match_func(lines, str_, count):
+
+def match_func(lines, str_, count, func_version = False):
     pattern = create_pattern(str_)
     result = []
     for line in lines:
         m = pattern.match(line)
         if m:
-            weight = get_weight(line, str_)
+            if func_version:
+                weight = get_weight_2(line, str_)
+            else:
+                # weight = get_weight(line, str_)
+                weight = cmatch.get_weight(line, str_)
             # weight = 0
             result.append((line, weight))
     result = sorted(result, reverse=True, key=lambda x: x[1])
@@ -88,9 +102,14 @@ if __name__ == "__main__":
     import time
     from private_data import data
     items = data["items"]
-    str_ = 'asd'
+    str_ = 'as'
     count = 20
+    print("FAST")
     start = time.time()
     lines = match_func(items, str_, count)
-    print(lines)
     print(time.time() - start)
+
+    start = time.time()
+    lines_2 = match_func(items, str_, count, 1)
+    print(time.time() - start)
+    print(lines == lines_2)
